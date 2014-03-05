@@ -3,6 +3,9 @@ package com.moonsd.packageviewer;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 
 import com.moonsd.adapter.PackageListAdapter;
@@ -21,6 +24,15 @@ public class MainActivity extends Activity {
 		packageListView = (ListView)findViewById(R.id.app_list);
 		packageListAdapter = new PackageListAdapter(this, PackageUtil.getPackageList(this));
 		packageListView.setAdapter(packageListAdapter);
+		
+		packageListView.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+					long arg3) {
+				
+			}
+		});
 	}
 
 	@Override
