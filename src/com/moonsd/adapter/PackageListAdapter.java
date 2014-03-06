@@ -23,6 +23,10 @@ public class PackageListAdapter extends BaseAdapter {
 		appList = list;
 	}
 	
+	public void setData(List<AppInfo> list){
+		appList = list;
+	}
+	
 	@Override
 	public int getCount() {
 		return appList.size();
