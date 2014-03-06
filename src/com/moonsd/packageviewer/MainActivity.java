@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -17,7 +18,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
@@ -27,6 +27,7 @@ import android.widget.Toast;
 import com.moonsd.adapter.PackageListAdapter;
 import com.moonsd.entities.AppInfo;
 import com.moonsd.utils.PackageUtil;
+import com.umeng.analytics.MobclickAgent;
 
 public class MainActivity extends Activity {
 
@@ -39,16 +40,18 @@ public class MainActivity extends Activity {
 	private Dialog dialog;
 
 	private AppInfo currSelectItem;
+	private int currTab = 0;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_main);
 
 		systemList = new ArrayList<AppInfo>();
 		userList = new ArrayList<AppInfo>();
 		refreshData();
+		
+		MobclickAgent.updateOnlineConfig(this);
 
 		packageListView = (ListView) findViewById(R.id.app_list);
 		packageListAdapter = new PackageListAdapter(this, appList);
@@ -61,7 +64,13 @@ public class MainActivity extends Activity {
 			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
 					long arg3) {
 				if (!dialog.isShowing()) {
-					currSelectItem = appList.get(arg2);
+					if(currTab == 0)
+						currSelectItem = appList.get(arg2);
+					else if(currTab == 1)
+						currSelectItem = systemList.get(arg2);
+					else if(currTab == 2)
+						currSelectItem = userList.get(arg2);
+					MobclickAgent.onEvent(MainActivity.this, "DialogShow");
 					dialog.setTitle(currSelectItem.getAppName());
 					dialog.show();
 				}
@@ -102,18 +111,22 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		String string = "";
+		MobclickAgent.onEvent(this, "Menuclick");
 		switch (item.getItemId()) {
 		case 0:
 			packageListAdapter.setData(appList);
 			string = "共安装了 " + appList.size() + " 款应用";
+			currTab = 0;
 			break;
 		case 1:
 			packageListAdapter.setData(systemList);
 			string = "共安装了 " + systemList.size() + " 款系统应用";
+			currTab = 1;
 			break;
 		case 2:
 			packageListAdapter.setData(userList);
 			string = "共安装了 " + userList.size() + " 款用户应用";
+			currTab = 2;
 			break;
 		default:
 			break;
@@ -125,10 +138,9 @@ public class MainActivity extends Activity {
 	}
 
 	private void initDialog() {
-		dialog = new Dialog(this);
 		View view = LayoutInflater.from(this).inflate(R.layout.dialog_click,
 				null);
-		dialog.setContentView(view);
+		dialog = new AlertDialog.Builder(this).setView(view).create();
 		Button detailsBtn = (Button) view.findViewById(R.id.dialog_appdetails);
 		Button shareBtn = (Button) view.findViewById(R.id.dialog_appshare);
 		Button cancelBtn = (Button) view.findViewById(R.id.dialog_appcancel);
@@ -143,6 +155,9 @@ public class MainActivity extends Activity {
 					Intent intent = new Intent(
 							Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri);
 					startActivity(intent);
+					if (dialog.isShowing())
+						dialog.dismiss();
+					MobclickAgent.onEvent(MainActivity.this, "AppDetailsClick");
 				}
 			}
 		});
@@ -160,12 +175,15 @@ public class MainActivity extends Activity {
 					str = "否";
 				sendIntent.putExtra(
 						Intent.EXTRA_TEXT,
-						"以下信息来自 PackageViewer: \n应用名称: "
+						"以下信息来自 " + R.string.app_name + ": \n应用名称: "
 								+ currSelectItem.getAppName() + "\n应用包名: "
 								+ currSelectItem.getPkgName() + "\n是否系统应用: "
 								+ str);
 				sendIntent.setType("text/plain");
 				startActivity(sendIntent);
+				if (dialog.isShowing())
+					dialog.dismiss();
+				MobclickAgent.onEvent(MainActivity.this, "AppSharedClick");
 			}
 		});
 
@@ -191,9 +209,21 @@ public class MainActivity extends Activity {
 	}
 
 	@Override
-	protected void onStop() {
-		super.onStop();
+	protected void onDestroy() {
+		super.onDestroy();
 		unregisterReceiver(installReceiver);
+	}
+	
+	@Override
+	protected void onResume(){
+		super.onResume();
+		MobclickAgent.onResume(this);
+	}
+	
+	@Override
+	protected void onPause(){
+		super.onPause();
+		MobclickAgent.onPause(this);
 	}
 
 	BroadcastReceiver installReceiver = new BroadcastReceiver() {
@@ -203,11 +233,13 @@ public class MainActivity extends Activity {
 			if (intent.getAction()
 					.equals("android.intent.action.PACKAGE_ADDED")) {
 				refreshData();
+				packageListAdapter.notifyDataSetChanged();
 			}
 
 			if (intent.getAction().equals(
 					"android.intent.action.PACKAGE_REMOVED")) {
 				refreshData();
+				packageListAdapter.notifyDataSetChanged();
 			}
 		}
 	};

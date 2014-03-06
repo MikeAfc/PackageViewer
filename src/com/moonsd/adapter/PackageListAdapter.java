@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.moonsd.entities.AppInfo;
 import com.moonsd.packageviewer.R;
+import com.moonsd.utils.PackageUtil;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -17,10 +18,12 @@ public class PackageListAdapter extends BaseAdapter {
 
 	private LayoutInflater mInflater;
 	private List<AppInfo> appList;
+	private Context context;
 	
 	public PackageListAdapter(Context ctx, List<AppInfo> list){
 		mInflater = LayoutInflater.from(ctx);
 		appList = list;
+		context = ctx;
 	}
 	
 	public void setData(List<AppInfo> list){
@@ -58,7 +61,7 @@ public class PackageListAdapter extends BaseAdapter {
 		}
 		
 		AppInfo info = appList.get(position);
-		item.appIcon.setBackgroundDrawable(info.getAppIcon());
+		item.appIcon.setBackgroundDrawable(PackageUtil.getDrawable(context.getPackageManager(), info.getApplicationInfo()));
 		item.appName.setText(info.getAppName());
 		if(info.isSystemApp()){
 			item.appType.setText("系统应用");

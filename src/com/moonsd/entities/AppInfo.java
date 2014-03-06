@@ -1,5 +1,8 @@
 package com.moonsd.entities;
 
+import java.lang.ref.SoftReference;
+
+import android.content.pm.ApplicationInfo;
 import android.graphics.drawable.Drawable;
 
 public class AppInfo {
@@ -7,6 +10,13 @@ public class AppInfo {
 	private String pkgName;
 	private Drawable appIcon;
 	private boolean isSystemApp;
+	private ApplicationInfo applicationInfo;
+	public ApplicationInfo getApplicationInfo() {
+		return applicationInfo;
+	}
+	public void setApplicationInfo(ApplicationInfo applicationInfo) {
+		this.applicationInfo = applicationInfo;
+	}
 	public String getAppName() {
 		return appName;
 	}

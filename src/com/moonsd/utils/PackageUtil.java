@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 
 import com.moonsd.entities.AppInfo;
 
@@ -19,12 +20,16 @@ public class PackageUtil {
 			AppInfo appInfo = new AppInfo();
 			appInfo.setAppName(packageManager.getApplicationLabel(info.applicationInfo).toString());
 			appInfo.setPkgName(info.applicationInfo.packageName);
-			appInfo.setAppIcon(packageManager.getApplicationIcon(info.applicationInfo));
+			appInfo.setApplicationInfo(info.applicationInfo);
 			if((info.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) > 0){
 				appInfo.setSystemApp(true);
 			}
 			appList.add(appInfo);
 		}
 		return appList;
+	}
+	
+	public static Drawable getDrawable(PackageManager packageManager, ApplicationInfo applicationInfo){
+		return packageManager.getApplicationIcon(applicationInfo);
 	}
 }
