@@ -53,6 +53,30 @@ public class PackageUtil {
 		}
 		return resultList;
 	}
+	
+	private static void quickSort(int[] array, int low , int high ){
+		if( low < high ){
+			int middle = getMiddle( array , low , high );
+			quickSort( array , low , middle - 1 );
+			quickSort( array , middle + 1 , high );
+		}
+	}
+	
+	private static int getMiddle(int[] array, int low , int high ){
+		int x = array[high];
+		for( int j = low ; j < high ; j++ ){
+			if( array[j] <= x ){
+				int temp = array[low];
+				array[low] = array[j];
+				array[j] = temp;
+				low++;
+			}
+		}
+		int temp = array[low];
+		array[low] = array[high];
+		array[high] = temp;
+		return low;
+	}
 
 	private static String getChinesePinYin(String str) {
 		HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
