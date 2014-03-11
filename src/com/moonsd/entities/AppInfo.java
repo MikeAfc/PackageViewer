@@ -11,6 +11,13 @@ public class AppInfo {
 	private Drawable appIcon;
 	private boolean isSystemApp;
 	private ApplicationInfo applicationInfo;
+	private String chinesePinYin;
+	public String getChinesePinYin() {
+		return chinesePinYin;
+	}
+	public void setChinesePinYin(String chinesePinYin) {
+		this.chinesePinYin = chinesePinYin;
+	}
 	public ApplicationInfo getApplicationInfo() {
 		return applicationInfo;
 	}

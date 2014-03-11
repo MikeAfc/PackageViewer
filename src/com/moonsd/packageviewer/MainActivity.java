@@ -50,7 +50,7 @@ public class MainActivity extends Activity {
 		systemList = new ArrayList<AppInfo>();
 		userList = new ArrayList<AppInfo>();
 		refreshData();
-		
+
 		MobclickAgent.updateOnlineConfig(this);
 
 		packageListView = (ListView) findViewById(R.id.app_list);
@@ -64,11 +64,11 @@ public class MainActivity extends Activity {
 			public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
 					long arg3) {
 				if (!dialog.isShowing()) {
-					if(currTab == 0)
+					if (currTab == 0)
 						currSelectItem = appList.get(arg2);
-					else if(currTab == 1)
+					else if (currTab == 1)
 						currSelectItem = systemList.get(arg2);
-					else if(currTab == 2)
+					else if (currTab == 2)
 						currSelectItem = userList.get(arg2);
 					MobclickAgent.onEvent(MainActivity.this, "DialogShow");
 					dialog.setTitle(currSelectItem.getAppName());
@@ -79,6 +79,8 @@ public class MainActivity extends Activity {
 	}
 
 	private void refreshData() {
+		if (appList != null)
+			appList.clear();
 		appList = PackageUtil.getPackageList(this);
 		systemList.clear();
 		userList.clear();
@@ -88,6 +90,15 @@ public class MainActivity extends Activity {
 			else
 				userList.add(info);
 
+		}
+		if (packageListAdapter != null) {
+			if (currTab == 0) {
+				packageListAdapter.setData(appList);
+			} else if (currTab == 1) {
+				packageListAdapter.setData(systemList);
+			} else if (currTab == 2) {
+				packageListAdapter.setData(userList);
+			}
 		}
 	}
 
@@ -173,8 +184,7 @@ public class MainActivity extends Activity {
 					str = "是";
 				else
 					str = "否";
-				sendIntent.putExtra(
-						Intent.EXTRA_TEXT,
+				sendIntent.putExtra(Intent.EXTRA_TEXT,
 						"以下信息来自 " + R.string.app_name + ": \n应用名称: "
 								+ currSelectItem.getAppName() + "\n应用包名: "
 								+ currSelectItem.getPkgName() + "\n是否系统应用: "
@@ -213,15 +223,15 @@ public class MainActivity extends Activity {
 		super.onDestroy();
 		unregisterReceiver(installReceiver);
 	}
-	
+
 	@Override
-	protected void onResume(){
+	protected void onResume() {
 		super.onResume();
 		MobclickAgent.onResume(this);
 	}
-	
+
 	@Override
-	protected void onPause(){
+	protected void onPause() {
 		super.onPause();
 		MobclickAgent.onPause(this);
 	}
