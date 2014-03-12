@@ -1,4 +1,4 @@
-package com.moonsd.packageviewer;
+package com.moonsd.activity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,11 +13,13 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
@@ -26,13 +28,19 @@ import android.widget.Toast;
 
 import com.moonsd.adapter.PackageListAdapter;
 import com.moonsd.entities.AppInfo;
+import com.moonsd.packageviewer.R;
 import com.moonsd.utils.PackageUtil;
+import com.nhaarman.listviewanimations.itemmanipulation.OnDismissCallback;
+import com.nhaarman.listviewanimations.itemmanipulation.swipedismiss.SwipeDismissAdapter;
+import com.nhaarman.listviewanimations.swinginadapters.AnimationAdapter;
+import com.nhaarman.listviewanimations.swinginadapters.prepared.SwingRightInAnimationAdapter;
 import com.umeng.analytics.MobclickAgent;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements OnDismissCallback {
 
 	private ListView packageListView;
 	private PackageListAdapter packageListAdapter;
+	private AnimationAdapter animAdapter;
 	private List<AppInfo> appList;
 	private List<AppInfo> systemList;
 	private List<AppInfo> userList;
@@ -41,6 +49,7 @@ public class MainActivity extends Activity {
 
 	private AppInfo currSelectItem;
 	private int currTab = 0;
+	private static final String TAG = "PackageViewer";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +64,11 @@ public class MainActivity extends Activity {
 
 		packageListView = (ListView) findViewById(R.id.app_list);
 		packageListAdapter = new PackageListAdapter(this, appList);
-		packageListView.setAdapter(packageListAdapter);
+		animAdapter = new SwingRightInAnimationAdapter(packageListAdapter);
+		SwipeDismissAdapter adapter = new SwipeDismissAdapter(animAdapter, this);
+		adapter.setAbsListView(packageListView);
+		packageListView.setAdapter(adapter);
+
 		initDialog();
 
 		packageListView.setOnItemClickListener(new OnItemClickListener() {
@@ -145,6 +158,8 @@ public class MainActivity extends Activity {
 		Toast.makeText(getApplicationContext(), string, Toast.LENGTH_SHORT)
 				.show();
 		packageListAdapter.notifyDataSetChanged();
+		animAdapter.notifyDataSetChanged();
+
 		return super.onOptionsItemSelected(item);
 	}
 
@@ -181,9 +196,9 @@ public class MainActivity extends Activity {
 				sendIntent.setAction(Intent.ACTION_SEND);
 				String str;
 				if (currSelectItem.isSystemApp())
-					str = "是";
+					str = "???";
 				else
-					str = "否";
+					str = "???";
 				sendIntent.putExtra(Intent.EXTRA_TEXT,
 						"以下信息来自 " + R.string.app_name + ": \n应用名称: "
 								+ currSelectItem.getAppName() + "\n应用包名: "
@@ -248,10 +263,36 @@ public class MainActivity extends Activity {
 
 			if (intent.getAction().equals(
 					"android.intent.action.PACKAGE_REMOVED")) {
+				for (AppInfo info : appList) {
+					if(info.getPkgName().equals(intent.getDataString().replace("package:", ""))){
+						break;
+					}
+				}
+				
 				refreshData();
 				packageListAdapter.notifyDataSetChanged();
 			}
 		}
 	};
+
+	@Override
+	public void onDismiss(AbsListView arg0, int[] reverseSortedPositions) {
+		AppInfo tmp = null;
+		for (int position : reverseSortedPositions) {
+			if (currTab == 0)
+				tmp = appList.get(position);
+			else if (currTab == 1)
+				tmp = systemList.get(position);
+			else if (currTab == 2)
+				tmp = userList.get(position);
+			if (tmp != null) {
+				
+				Uri uri = Uri.parse("package:" + tmp.getPkgName());
+				Intent intent = new Intent(Intent.ACTION_DELETE, uri);
+				startActivity(intent);
+			}
+		}
+
+	}
 
 }

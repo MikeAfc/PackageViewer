@@ -14,6 +14,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 
 import com.moonsd.entities.AppInfo;
 
@@ -35,7 +36,6 @@ public class PackageUtil {
 			appList.add(appInfo);
 		}
 		
-		
 		return sortList(appList);
 	}
 
@@ -45,16 +45,19 @@ public class PackageUtil {
 	}
 
 	private static List<AppInfo> sortList(List<AppInfo> list) {
-		List<AppInfo> resultList = new ArrayList<AppInfo>();
-		for (int i = 0; i < list.size(); i++) {
-			for (int j = i + 1; j < list.size(); j++) {
-				
-			}
+		AppInfo[] array = list.toArray(new AppInfo[list.size()]);
+		quickSort(array, 0, array.length - 1);
+		
+		list.clear();
+		for (int i = 0; i < array.length; i++) {
+			list.add(array[i]);
 		}
-		return resultList;
+		
+		return list;
+		
 	}
 	
-	private static void quickSort(int[] array, int low , int high ){
+	private static void quickSort(AppInfo[] array, int low , int high ){
 		if( low < high ){
 			int middle = getMiddle( array , low , high );
 			quickSort( array , low , middle - 1 );
@@ -62,17 +65,17 @@ public class PackageUtil {
 		}
 	}
 	
-	private static int getMiddle(int[] array, int low , int high ){
-		int x = array[high];
+	private static int getMiddle(AppInfo[] array, int low , int high ){
+		AppInfo x = array[high];
 		for( int j = low ; j < high ; j++ ){
-			if( array[j] <= x ){
-				int temp = array[low];
+			if( array[j].getChinesePinYin().compareTo(x.getChinesePinYin()) <= 0 ){
+				AppInfo temp = array[low];
 				array[low] = array[j];
 				array[j] = temp;
 				low++;
 			}
 		}
-		int temp = array[low];
+		AppInfo temp = array[low];
 		array[low] = array[high];
 		array[high] = temp;
 		return low;
@@ -103,6 +106,6 @@ public class PackageUtil {
 				result.append(Character.toString(array[i]));
 		}
 
-		return result.toString();
+		return result.toString().toLowerCase();
 	}
 }
